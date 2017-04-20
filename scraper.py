@@ -48,20 +48,44 @@ children = response['children']
 
 html_parser = HTMLParser()
 
+def remove_html_tags(content):
+
+    html_tags = ["p", "b", "tt", "div", "ul", "li"]
+
+    for tag in html_tags:
+        content = content.replace("<"+tag+">", "")
+        content = content.replace("</"+tag+">", "")
+
+    content = content.replace("<br />", " ")
+
+    # Remove entirety of images
+    content = re.sub("<img.*/>", " ", content)
+
+    return content
+
 def clean_text(content):
-    # TODO: Remove html tags
     # TODO: Return length of code
+
+    # print content
     
     # Convert HTML codes into normal unicode characters
     content = html_parser.unescape(content)
 
+    # Turn hidden unicode characters into their escape codes
     content = content.encode('unicode-escape')
 
-    # Remove a unicode string
+    # Remove unicode characters
     content = re.sub('\\\u[0-9a-f]{4}', " ", content)
+
+    # Remove \xa0 character
+    content = content.replace('\\xa0', " ")
 
     # Remove newlines
     content = content.replace("\\n", " ")
+
+    content = remove_html_tags(content)
+
+    # print "\n\n", content
 
     return content
 
@@ -108,8 +132,8 @@ def get_relevant_fields(post_resp):
 def export_all_data():
 
     # Calling with no argument gets all posts
-    all_responses = class_122.iter_all_posts(200)
-    # all_responses = [class_122.get_post(2833)]
+    all_responses = class_122.iter_all_posts()
+    # all_responses = [class_122.get_post(2611)]
     print "Finished getting all posts"
     
     out_file = open(export_file, "wb")
