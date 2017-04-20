@@ -4,12 +4,16 @@ import csv
 import re
 
 
+# First line in config should be piazza email
+# Second line in config should be piazza password
 config_file = "config.txt"
+
 export_file = "posts.csv"
 
+# Features that are exported to be used for training
 features = ["title", "body", "tags"]
 
-
+# Read credentials
 with open(config_file) as f:
     content = f.readlines()
 creds = [x.strip() for x in content]
@@ -44,19 +48,21 @@ children = response['children']
 
 html_parser = HTMLParser()
 
-def clean_post_content(content):
+def clean_text(content):
     # TODO: Remove html tags and code blocks
     # TODO: Return length of code as well 
-
-    # Remove a unicode string
-    content = re.sub(u'\xa0', " ", content)
-
-    # Remove newlines
-    content = content.replace("\n", "")
-
+    
     # Convert HTML codes into normal unicode characters
     content = html_parser.unescape(content)
-    
+
+    content = content.encode('unicode-escape')
+
+    # Remove a unicode string
+    content = re.sub('\\\u[0-9a-f]{4}', " ", content)
+
+    # Remove newlines
+    content = content.replace("\\n", "")
+
     return content
 
 # Returns a list of relevant fields from a post for exporting
@@ -71,25 +77,27 @@ def get_relevant_fields(post_resp):
  
     # Question title
     title = question["subject"]
-    data["title"] = title
+    data["title"] = clean_text(title)
 
     # Question text
-    content_ = question["content"]
-    content = clean_post_content(content_)
-    data["body"] = content 
+    content = question["content"]
+    data["body"] = clean_text(content)
 
     # Question tags
     tags = post_resp["folders"]
     data["tags"] = "|".join(tags)
 
-    for f in features:
-        assert(f in data)
+    # for f in features:
+        # assert(f in data)
+
+    data["cid"] = post_resp["nr"]
 
     return data
 
 def export_all_data():
-    all_responses = class_122.iter_all_posts(4)
-    # all_responses = [class_122.get_post(2279)]
+    all_responses = class_122.iter_all_posts()
+    # all_responses = [class_122.get_post(574)]
+    print "Finished getting all posts"
     
     out_file = open(export_file, "wb")
     csv_writer = csv.writer(out_file)
@@ -97,18 +105,30 @@ def export_all_data():
 
     # Write column headers of feature names
     csv_writer.writerow(features)
+    
+    count = 0
 
     for response in all_responses:
         
         fields_dict = get_relevant_fields(response)
-        print fields_dict
-        print fields_dict["body"]
+
+        # print fields_dict
         
         values = [fields_dict[k] for k in features]
+        #.encode('utf-8')
         
         line = ','.join(values)
 
-        csv_writer.writerow(values)
+        try:
+            csv_writer.writerow(values)
+        except Exception as e:
+            print "Failed on id=", fields_dict["cid"]
+            print(e)
+            exit(1)
+
+        if count % 200 == 0:
+            print count
+        count+=1
 
     
 
