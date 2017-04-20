@@ -10,8 +10,8 @@ config_file = "config.txt"
 
 export_file = "posts.csv"
 
-# Features that are exported to be used for training
-features = ["title", "body", "tags"]
+# Fields that are exported to be used for converting to features
+TITLE_FIELDS = ["title", "body", "visibility", "tags"]
 
 # Read credentials
 with open(config_file) as f:
@@ -49,8 +49,8 @@ children = response['children']
 html_parser = HTMLParser()
 
 def clean_text(content):
-    # TODO: Remove html tags and code blocks
-    # TODO: Return length of code as well 
+    # TODO: Remove html tags
+    # TODO: Return length of code
     
     # Convert HTML codes into normal unicode characters
     content = html_parser.unescape(content)
@@ -61,7 +61,7 @@ def clean_text(content):
     content = re.sub('\\\u[0-9a-f]{4}', " ", content)
 
     # Remove newlines
-    content = content.replace("\\n", "")
+    content = content.replace("\\n", " ")
 
     return content
 
@@ -87,16 +87,29 @@ def get_relevant_fields(post_resp):
     tags = post_resp["folders"]
     data["tags"] = "|".join(tags)
 
-    # for f in features:
-        # assert(f in data)
+    # Public/private
+    visibility = post_resp["status"]
+    if visibility == "active":
+        visibility = "public"
+    if visibility != "public" and visibility != "private":
+        print visibility
+        raise ValueError("Strange visibility")
+    data["visibility"] = visibility
 
+
+    # Makes sure that fields are synced in this function and globally
+    assert(set(TITLE_FIELDS) == set(data.keys()))
+
+    # ID of post (Only for debugging purposes)
     data["cid"] = post_resp["nr"]
 
     return data
 
 def export_all_data():
-    all_responses = class_122.iter_all_posts()
-    # all_responses = [class_122.get_post(574)]
+
+    # Calling with no argument gets all posts
+    all_responses = class_122.iter_all_posts(200)
+    # all_responses = [class_122.get_post(2833)]
     print "Finished getting all posts"
     
     out_file = open(export_file, "wb")
@@ -104,18 +117,20 @@ def export_all_data():
 
 
     # Write column headers of feature names
-    csv_writer.writerow(features)
+    csv_writer.writerow(TITLE_FIELDS)
     
     count = 0
 
     for response in all_responses:
+
+        # for r in response:
+            # print r, response[r]
         
         fields_dict = get_relevant_fields(response)
 
         # print fields_dict
         
-        values = [fields_dict[k] for k in features]
-        #.encode('utf-8')
+        values = [fields_dict[k] for k in TITLE_FIELDS]
         
         line = ','.join(values)
 
