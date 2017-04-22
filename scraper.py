@@ -1,8 +1,13 @@
 from piazza_api import Piazza
 from HTMLParser import HTMLParser
 from bs4 import BeautifulSoup
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+import pandas as pd
+import os
 import csv
 import re
+
 
 
 # First line in config should be piazza email
@@ -144,7 +149,8 @@ def get_relevant_fields(post_resp):
 
     return data
 
-def export_all_data():
+
+def get_all_online_data():
 
     # Calling with no argument gets all posts
     all_responses = class_122.iter_all_posts()
@@ -192,10 +198,44 @@ def export_all_data():
 
     out_file.close()
 
+def write_bag_of_words(input_csv):
+
+    data = pd.read_csv(input_csv, header=0)
+    file_title = input_csv.split(".")[0]
+    print file_title
 
 
-export_all_data()
+    title_out_file = file_title + "_title_vector.csv"
+    body_out_file = file_title + "_body_vector.csv"
 
+    vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
+    title_vector = (vectorizer.fit_transform(data['title'])).toarray()
+    body_vector = (vectorizer.fit_transform(data['body'])).toarray()
+
+    t_out_file = open(title_out_file, 'wb')
+
+    np.savetxt(t_out_file, title_vector, delimiter=",", fmt="%02d")
+
+    b_out_file = open(body_out_file, 'wb')
+    np.savetxt(b_out_file, body_vector, delimiter=",", fmt="%02d")
+
+    t_out_file = open(title_out_file, 'rb')
+
+    read_title_vector = np.loadtxt(t_out_file, delimiter=",")
+    b_out_file = open(body_out_file, 'rb')
+    read_body_vector = np.loadtxt(b_out_file, delimiter=",")
+
+    print title_vector.shape
+    print read_title_vector.shape
+
+    print title_vector[0]
+    print read_title_vector[0]
+    
+    assert(np.array_equal(title_vector, read_title_vector))
+    assert(np.array_equal(body_vector, read_body_vector))
+
+# get_all_online_data()
+write_bag_of_words("122_posts.csv")
 
 
 
