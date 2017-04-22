@@ -1,5 +1,6 @@
 from piazza_api import Piazza
 from HTMLParser import HTMLParser
+from bs4 import BeautifulSoup
 import csv
 import re
 
@@ -66,7 +67,7 @@ def remove_html_tags(content):
 def clean_text(content):
     # TODO: Return length of code
 
-    # print content
+    # print "before\n", content
     
     # Convert HTML codes into normal unicode characters
     content = html_parser.unescape(content)
@@ -82,10 +83,19 @@ def clean_text(content):
 
     # Remove newlines
     content = content.replace("\\n", " ")
+   
+    # Remove html tags
+    content = (BeautifulSoup(content, "lxml")).get_text()
 
-    content = remove_html_tags(content)
+    # Remove any characters other than letters and '
+    content = re.sub("[^a-zA-Z']", " ", content)
 
-    # print "\n\n", content
+    # Convert to lowercase
+    content = content.lower()
+
+    content = " ".join(content.split())
+
+    # print "\n\nafter\n", content
 
     return content
 
@@ -127,13 +137,18 @@ def get_relevant_fields(post_resp):
     # ID of post (Only for debugging purposes)
     data["cid"] = post_resp["nr"]
 
+    # If any field is blank, we can't use this post
+    for key in data:
+        if data[key] == "":
+            return None
+
     return data
 
 def export_all_data():
 
     # Calling with no argument gets all posts
     all_responses = class_122.iter_all_posts()
-    # all_responses = [class_122.get_post(2611)]
+    # all_responses = [class_122.get_post(2816)]
     print "Finished getting all posts"
     
     out_file = open(export_file, "wb")
@@ -153,6 +168,10 @@ def export_all_data():
         fields_dict = get_relevant_fields(response)
 
         # print fields_dict
+        
+        if fields_dict == None:
+            continue
+
         
         values = [fields_dict[k] for k in TITLE_FIELDS]
         
