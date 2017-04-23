@@ -9,65 +9,13 @@ import csv
 import re
 
 
-
 # First line in config should be piazza email
 # Second line in config should be piazza password
 config_file = "config.txt"
 
-export_file = "posts.csv"
 
 # Fields that are exported to be used for converting to features
 TITLE_FIELDS = ["title", "body", "visibility", "tags"]
-
-# Read credentials
-with open(config_file) as f:
-    content = f.readlines()
-creds = [x.strip() for x in content]
-username = creds[0]
-password = creds[1]
-
-p = Piazza()
-p.user_login(username,password)
-
-class_122 = p.network("ix087c2ns5p656")
-class_381 = p.network("ixz5scp9zqi583")
-
-# response = class_122.get_post(2770)
-response = class_381.get_post(189)
-
-# for field in response:
-    # print field, response[field]
-
-children = response['children']
-# for c in children:
-    # print c
-
-# all_responses = class_122.iter_all_posts(1000)
-
-# count = 0
-# for r in all_responses:
-    # count+=1
-
-    # if(count % 100 == 0):
-        # print count
-
-
-html_parser = HTMLParser()
-
-def remove_html_tags(content):
-
-    html_tags = ["p", "b", "tt", "div", "ul", "li"]
-
-    for tag in html_tags:
-        content = content.replace("<"+tag+">", "")
-        content = content.replace("</"+tag+">", "")
-
-    content = content.replace("<br />", " ")
-
-    # Remove entirety of images
-    content = re.sub("<img.*/>", " ", content)
-
-    return content
 
 def clean_text(content):
     # TODO: Return length of code
@@ -75,6 +23,7 @@ def clean_text(content):
     # print "before\n", content
     
     # Convert HTML codes into normal unicode characters
+    html_parser = HTMLParser()
     content = html_parser.unescape(content)
 
     # Turn hidden unicode characters into their escape codes
@@ -104,7 +53,7 @@ def clean_text(content):
 
     return content
 
-# Returns a list of relevant fields from a post for exporting
+# Returns a list of the extracted fields from a post for exporting
 # Input: post_resp is a response from the piazza api
 # Output: dictionary of feature names with associated data
 def get_relevant_fields(post_resp):
@@ -113,7 +62,7 @@ def get_relevant_fields(post_resp):
     question = history[0] # Get most recent question text
 
     data = {}
- 
+    
     # Question title
     title = question["subject"]
     data["title"] = clean_text(title)
@@ -149,17 +98,46 @@ def get_relevant_fields(post_resp):
 
     return data
 
+# Downloads and writes all post data
+# Data saved to export_file
+# piazza_class is a string of which class you want to download
+def get_all_online_data(piazza_class):
 
-def get_all_online_data():
+    # Appends this string to the class name when storing the data
+    export_file_suffix = "_posts.csv"
+
+    # Read credentials
+    with open(config_file) as f:
+        content = f.readlines()
+    creds = [x.strip() for x in content]
+    username = creds[0]
+    password = creds[1]
+
+    p = Piazza()
+    p.user_login(username,password)
+
+    class_122 = p.network("ix087c2ns5p656")
+    class_381 = p.network("ixz5scp9zqi583")
+
+    ### Change this to download a different class's data
+    class_to_download = None
+    if piazza_class == "122":
+        class_to_download = class_122
+    elif piazza_class == "381":
+        class_to_download = class_381
+    else:
+        raise ValueError("Invalid class name")
+    export_file = piazza_class + export_file_suffix
+    ###
+
 
     # Calling with no argument gets all posts
-    all_responses = class_122.iter_all_posts()
-    # all_responses = [class_122.get_post(2816)]
+    all_responses = class_to_download.iter_all_posts()
+    # all_responses = [class_to_download.get_post(2806)]
     print "Finished getting all posts"
     
     out_file = open(export_file, "wb")
     csv_writer = csv.writer(out_file)
-
 
     # Write column headers of feature names
     csv_writer.writerow(TITLE_FIELDS)
@@ -198,44 +176,54 @@ def get_all_online_data():
 
     out_file.close()
 
-def write_bag_of_words(input_csv):
+# Reads in the input_csv file and generates the bag of words representation and saves that to multiple files
+def write_vectorized_data(input_csv):
 
     data = pd.read_csv(input_csv, header=0)
     file_title = input_csv.split(".")[0]
-    print file_title
 
-
-    title_out_file = file_title + "_title_vector.csv"
-    body_out_file = file_title + "_body_vector.csv"
+    title_vector_file = file_title + "_title_vector.csv"
+    body_vector_file = file_title + "_body_vector.csv"
 
     vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
     title_vector = (vectorizer.fit_transform(data['title'])).toarray()
     body_vector = (vectorizer.fit_transform(data['body'])).toarray()
 
-    t_out_file = open(title_out_file, 'wb')
-
+    t_out_file = open(title_vector_file, 'wb')
     np.savetxt(t_out_file, title_vector, delimiter=",", fmt="%02d")
 
-    b_out_file = open(body_out_file, 'wb')
+    b_out_file = open(body_vector_file, 'wb')
     np.savetxt(b_out_file, body_vector, delimiter=",", fmt="%02d")
 
-    t_out_file = open(title_out_file, 'rb')
+    # TODO add tags and visibility fields
 
-    read_title_vector = np.loadtxt(t_out_file, delimiter=",")
-    b_out_file = open(body_out_file, 'rb')
-    read_body_vector = np.loadtxt(b_out_file, delimiter=",")
+# Reads in the multiple bag of words vectorized data files and returns as a single dictionary
+def read_vectorized_data(orig_file_name):
+    data = {}
 
-    print title_vector.shape
-    print read_title_vector.shape
+    file_title = orig_file_name.split(".")[0]
 
-    print title_vector[0]
-    print read_title_vector[0]
-    
-    assert(np.array_equal(title_vector, read_title_vector))
-    assert(np.array_equal(body_vector, read_body_vector))
+    title_vector_file = file_title + "_title_vector.csv"
+    body_vector_file = file_title + "_body_vector.csv"
 
-# get_all_online_data()
-write_bag_of_words("122_posts.csv")
+    t_file = open(title_vector_file, 'rb')
+    title_vector = np.loadtxt(t_file, delimiter=",")
+    data["title"] = title_vector
+
+    b_file = open(body_vector_file, 'rb')
+    body_vector = np.loadtxt(b_file, delimiter=",")
+    data["body"] = body_vector
+
+    # TODO add tags and visibility fields
+
+    return data
+
+class_to_test = "122"
+# get_all_online_data(class_to_test)
+# write_vectorized_data(class_to_test + "_posts.csv")
+data = read_vectorized_data(class_to_test + "_posts.csv")
+
+print data
 
 
 
