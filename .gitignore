@@ -1,2 +1,3 @@
 config.txt
 *.csv
+!122_posts.csv

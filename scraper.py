@@ -200,6 +200,7 @@ def write_vectorized_data(input_csv):
 # Reads in the multiple bag of words vectorized data files and returns as a single dictionary
 def read_vectorized_data(orig_file_name):
     data = {}
+    print "Reading vectorized data from file"
 
     file_title = orig_file_name.split(".")[0]
 
@@ -221,9 +222,9 @@ def read_vectorized_data(orig_file_name):
 class_to_test = "122"
 # get_all_online_data(class_to_test)
 # write_vectorized_data(class_to_test + "_posts.csv")
-data = read_vectorized_data(class_to_test + "_posts.csv")
+# data = read_vectorized_data(class_to_test + "_posts.csv")
 
-print data
+# print data
 
 
 
