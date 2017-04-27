@@ -1,4 +1,4 @@
-from piazza_api import Piazza
+#from piazza_api import Piazza
 from HTMLParser import HTMLParser
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import CountVectorizer
@@ -74,6 +74,8 @@ def get_relevant_fields(post_resp):
     # Question tags
     tags = post_resp["folders"]
     data["tags"] = "|".join(tags)
+    data["tags"].replace(" ", "")
+    data["tags"].replace("|", " ")
 
     # Public/private
     visibility = post_resp["status"]
@@ -189,6 +191,11 @@ def write_vectorized_data(input_csv):
     title_vector = (vectorizer.fit_transform(data['title'])).toarray()
     body_vector = (vectorizer.fit_transform(data['body'])).toarray()
 
+    #tag_vectorizer = CountVectorizer(analyzer = 'word')
+    #tag_vector = (tag_vectorizer.fit_transform(data['tags'].split('|'))).toarray()
+    #print(tag_vector)
+    #print(tag_vectorizer.vocabulary_)
+
     t_out_file = open(title_vector_file, 'wb')
     np.savetxt(t_out_file, title_vector, delimiter=",", fmt="%02d")
 
@@ -220,8 +227,8 @@ def read_vectorized_data(orig_file_name):
     return data
 
 class_to_test = "122"
-get_all_online_data(class_to_test)
-# write_vectorized_data(class_to_test + "_posts.csv")
+#get_all_online_data(class_to_test)
+write_vectorized_data(class_to_test + "_posts.csv")
 # data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
