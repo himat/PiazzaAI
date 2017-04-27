@@ -1,4 +1,4 @@
-#from piazza_api import Piazza
+from piazza_api import Piazza
 from HTMLParser import HTMLParser
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import CountVectorizer
@@ -74,8 +74,8 @@ def get_relevant_fields(post_resp):
     # Question tags
     tags = post_resp["folders"]
     data["tags"] = "|".join(tags)
-    data["tags"].replace(" ", "")
-    data["tags"].replace("|", " ")
+    data["tags"] = data["tags"].replace(" ", "")
+    data["tags"] = data["tags"].replace("|", " ")
 
     # Public/private
     visibility = post_resp["status"]
@@ -153,7 +153,7 @@ def get_all_online_data(piazza_class):
         
         fields_dict = get_relevant_fields(response)
 
-        # print fields_dict
+        # print fields_dict["tags"]
         
         if fields_dict == None:
             continue
@@ -227,8 +227,8 @@ def read_vectorized_data(orig_file_name):
     return data
 
 class_to_test = "122"
-#get_all_online_data(class_to_test)
-write_vectorized_data(class_to_test + "_posts.csv")
+get_all_online_data(class_to_test)
+# write_vectorized_data(class_to_test + "_posts.csv")
 # data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
