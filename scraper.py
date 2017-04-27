@@ -132,7 +132,7 @@ def get_all_online_data(piazza_class):
 
 
     # Calling with no argument gets all posts
-    all_responses = class_to_download.iter_all_posts()
+    all_responses = class_to_download.iter_all_posts(20)
     # all_responses = [class_to_download.get_post(2806)]
     print "Finished getting all posts"
     
@@ -220,7 +220,7 @@ def read_vectorized_data(orig_file_name):
     return data
 
 class_to_test = "122"
-# get_all_online_data(class_to_test)
+get_all_online_data(class_to_test)
 # write_vectorized_data(class_to_test + "_posts.csv")
 # data = read_vectorized_data(class_to_test + "_posts.csv")
 
