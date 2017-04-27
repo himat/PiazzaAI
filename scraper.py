@@ -178,58 +178,49 @@ def get_all_online_data(piazza_class):
 
     out_file.close()
 
-# Reads in the input_csv file and generates the bag of words representation and saves that to multiple files
-def write_vectorized_data(input_csv):
-
+# Reads in the multiple bag of words vectorized data files and returns as a single dictionary
+def read_vectorized_data(input_csv):
+    
     data = pd.read_csv(input_csv, header=0)
-    file_title = input_csv.split(".")[0]
-
-    title_vector_file = file_title + "_title_vector.csv"
-    body_vector_file = file_title + "_body_vector.csv"
 
     vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
+    
     title_vector = (vectorizer.fit_transform(data['title'])).toarray()
+    title_dict = vectorizer.vocabulary_
+
     body_vector = (vectorizer.fit_transform(data['body'])).toarray()
+    body_dict = vectorizer.vocabulary_
 
-    #tag_vectorizer = CountVectorizer(analyzer = 'word')
-    #tag_vector = (tag_vectorizer.fit_transform(data['tags'].split('|'))).toarray()
-    #print(tag_vector)
-    #print(tag_vectorizer.vocabulary_)
+    class_vectorizer = CountVectorizer(analyzer = 'word')
+    
+    tags_vector = (class_vectorizer.fit_transform(data['tags'])).toarray()
+    tags_dict = class_vectorizer.vocabulary_
 
-    t_out_file = open(title_vector_file, 'wb')
-    np.savetxt(t_out_file, title_vector, delimiter=",", fmt="%02d")
+    vis_vector = (class_vectorizer.fit_transform(data['visibility'])).toarray()
+    vis_dict = class_vectorizer.vocabulary_
 
-    b_out_file = open(body_vector_file, 'wb')
-    np.savetxt(b_out_file, body_vector, delimiter=",", fmt="%02d")
+    vocabs = {'title' : title_dict,
+              'body' : body_dict,
+              'tags' : tags_dict,
+              'visibility' : vis_dict}
+              
 
-    # TODO add tags and visibility fields
+    vectors = {'title' : title_vector,
+               'body' : body_vector,
+               'tags' : tags_vector,
+               'visibility' : vis_vector}
 
-# Reads in the multiple bag of words vectorized data files and returns as a single dictionary
-def read_vectorized_data(orig_file_name):
-    data = {}
-    print "Reading vectorized data from file"
+    print(vocabs['visibility'])
+    print(vectors['visibility'])
 
-    file_title = orig_file_name.split(".")[0]
+    return (vocabs, vectors)
 
-    title_vector_file = file_title + "_title_vector.csv"
-    body_vector_file = file_title + "_body_vector.csv"
 
-    t_file = open(title_vector_file, 'rb')
-    title_vector = np.loadtxt(t_file, delimiter=",")
-    data["title"] = title_vector
-
-    b_file = open(body_vector_file, 'rb')
-    body_vector = np.loadtxt(b_file, delimiter=",")
-    data["body"] = body_vector
-
-    # TODO add tags and visibility fields
-
-    return data
+    # TODO add visibility fields
 
 class_to_test = "122"
-get_all_online_data(class_to_test)
-# write_vectorized_data(class_to_test + "_posts.csv")
-# data = read_vectorized_data(class_to_test + "_posts.csv")
+#get_all_online_data(class_to_test)
+data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
 
