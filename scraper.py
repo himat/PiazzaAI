@@ -199,37 +199,52 @@ def read_vectorized_data(input_csv):
     vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
     
     title_vector = (vectorizer.fit_transform(data['title'])).toarray()
-    title_dict = vectorizer.vocabulary_
+    title_vocab = vectorizer.vocabulary_
+    title_dict = vectorizer.get_feature_names()
 
     body_vector = (vectorizer.fit_transform(data['body'])).toarray()
-    body_dict = vectorizer.vocabulary_
+    body_vocab = vectorizer.vocabulary_
+    body_dict = vectorizer.get_feature_names()
 
     class_vectorizer = CountVectorizer(analyzer = 'word')
     
     tags_vector = (class_vectorizer.fit_transform(data['tags'])).toarray()
-    tags_dict = class_vectorizer.vocabulary_
+    tags_vocab = class_vectorizer.vocabulary_
+    tags_dict = class_vectorizer.get_feature_names()
 
     vis_vector = (class_vectorizer.fit_transform(data['visibility'])).toarray()
-    vis_dict = class_vectorizer.vocabulary_
+    vis_vocab = class_vectorizer.vocabulary_
+    vis_dict = class_vectorizer.get_feature_names()
 
-    vocabs = {'title' : title_dict,
-              'body' : body_dict,
-              'tags' : tags_dict,
-              'visibility' : vis_dict}
-              
+    # Matches names to feature indices
+    vocabs = {'title' : title_vocab,
+              'body' : body_vocab,
+              'tags' : tags_vocab,
+              'visibility' : vis_vocab}
+                  
+    # Matches indices to feature names
+    dicts = {'title' : title_dict,
+             'body' : body_dict,
+             'tags' : tags_dict,
+             'visibility' : vis_dict}
 
     vectors = {'title' : title_vector,
                'body' : body_vector,
                'tags' : tags_vector,
                'visibility' : vis_vector}
 
-    return (vocabs, vectors)
+    originals = {'title' : data['title'],
+                 'body' : data['body'],
+                 'tags' : data['tags'],
+                 'visibility' : data['visibility']}
+
+    return (vocabs, dicts, vectors, originals)
 
 
 
 class_to_test = "122_f16"
 # f15, f16
-get_all_online_data(class_to_test)
+# get_all_online_data(class_to_test)
 # data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
