@@ -134,7 +134,7 @@ def get_all_online_data(piazza_class):
 
 
     # Calling with no argument gets all posts
-    all_responses = class_to_download.iter_all_posts(20)
+    all_responses = class_to_download.iter_all_posts()
     # all_responses = [class_to_download.get_post(2806)]
     print "Finished getting all posts"
     
@@ -210,17 +210,13 @@ def read_vectorized_data(input_csv):
                'tags' : tags_vector,
                'visibility' : vis_vector}
 
-    print(vocabs['visibility'])
-    print(vectors['visibility'])
-
     return (vocabs, vectors)
 
 
-    # TODO add visibility fields
 
 class_to_test = "122"
-#get_all_online_data(class_to_test)
-data = read_vectorized_data(class_to_test + "_posts.csv")
+# get_all_online_data(class_to_test)
+# data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
 
