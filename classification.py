@@ -6,9 +6,9 @@ from sklearn.datasets import make_multilabel_classification
 
 from sys import exit
 
-from scraper import *
+from read_data import *
 
-class_to_test = "122"
+class_to_test = "122_s17"
 input_file = class_to_test + "_posts.csv"
 
 def vecToTag(test_y, vocab):
@@ -21,7 +21,7 @@ def vecToTag(test_y, vocab):
             tag = key
     return tag
 
-(vocabs, vectors) = read_vectorized_data(input_file)
+(vocabs, dicts, vectors, originals) = read_vectorized_data(input_file)
 
 print "Vocab list: ", vocabs["tags"]
 print "Num classes: ", len(vocabs["tags"].keys())

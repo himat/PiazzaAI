@@ -1,6 +1,6 @@
 import numpy as np
 
-from scraper import *
+from read_data import *
 
 class_to_test = "122_s17"
 input_file = class_to_test + "_posts.csv"
