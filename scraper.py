@@ -227,7 +227,7 @@ def read_vectorized_data(input_csv):
 
 
 
-class_to_test = "601"
+class_to_test = "122_f16"
 # f15, f16
 get_all_online_data(class_to_test)
 # data = read_vectorized_data(class_to_test + "_posts.csv")
