@@ -118,15 +118,24 @@ def get_all_online_data(piazza_class):
     p = Piazza()
     p.user_login(username,password)
 
-    class_122 = p.network("ix087c2ns5p656")
+    class_122_s17 = p.network("ix087c2ns5p656")
+    class_122_f15 = p.network("idt0ymj51qr5do")
+    class_122_f16 = p.network("irz1akgnpve6eo")
     class_381 = p.network("ixz5scp9zqi583")
+    class_601 = p.network("ixs4v2xr1cz10d")
 
     ### Change this to download a different class's data
     class_to_download = None
-    if piazza_class == "122":
-        class_to_download = class_122
+    if piazza_class == "122_s17":
+        class_to_download = class_122_s17
+    elif piazza_class == "122_f15":
+        class_to_download = class_122_f15
+    elif piazza_class == "122_f16":
+        class_to_download = class_122_f16
     elif piazza_class == "381":
         class_to_download = class_381
+    elif piazza_class == "601":
+        class_to_download = class_601
     else:
         raise ValueError("Invalid class name")
     export_file = piazza_class + export_file_suffix
@@ -180,8 +189,12 @@ def get_all_online_data(piazza_class):
 
 # Reads in the multiple bag of words vectorized data files and returns as a single dictionary
 def read_vectorized_data(input_csv):
-    
+    print "Reading data and vectorizing"
+
     data = pd.read_csv(input_csv, header=0)
+
+    # Shuffle data
+    data = data.sample(frac=1).reset_index(drop=True)
 
     vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
     
@@ -214,8 +227,9 @@ def read_vectorized_data(input_csv):
 
 
 
-class_to_test = "122"
-# get_all_online_data(class_to_test)
+class_to_test = "601"
+# f15, f16
+get_all_online_data(class_to_test)
 # data = read_vectorized_data(class_to_test + "_posts.csv")
 
 # print data
