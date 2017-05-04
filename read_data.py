@@ -1,17 +1,27 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Reads in the multiple bag of words vectorized data files and returns as a single dictionary
-def read_vectorized_data(input_csv):
-    print "Reading data and vectorizing"
+def read_vectorized_data(input_csv, vectorizer_name, limit=None):
+    if vectorizer_name == "bag":
+        VectorizerEngine = CountVectorizer
+    elif vectorizer_name == "tfidf":
+        VectorizerEngine = TfidfVectorizer
 
-    data = pd.read_csv(input_csv, header=0)
+    print "Reading data with ", vectorizer_name, " format"
+    
+    if limit == None:
+        data = pd.read_csv(input_csv, header=0)
+    else:
+        data = pd.read_csv(input_csv, header=0, nrows=limit)
+
 
     # Shuffle data
     data = data.sample(frac=1).reset_index(drop=True)
 
-    vectorizer = CountVectorizer(analyzer = 'word', stop_words = 'english')
+    vectorizer = VectorizerEngine(analyzer = 'word', stop_words = 'english')
     
     title_vector = (vectorizer.fit_transform(data['title'])).toarray()
     title_vocab = vectorizer.vocabulary_
@@ -21,7 +31,7 @@ def read_vectorized_data(input_csv):
     body_vocab = vectorizer.vocabulary_
     body_dict = vectorizer.get_feature_names()
 
-    class_vectorizer = CountVectorizer(analyzer = 'word')
+    class_vectorizer = VectorizerEngine(analyzer = 'word')
     
     tags_vector = (class_vectorizer.fit_transform(data['tags'])).toarray()
     tags_vocab = class_vectorizer.vocabulary_
@@ -54,3 +64,5 @@ def read_vectorized_data(input_csv):
                  'visibility' : data['visibility']}
 
     return (vocabs, dicts, vectors, originals)
+
+

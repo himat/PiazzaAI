@@ -5,29 +5,27 @@ from read_data import *
 class_to_test = "122_s17"
 input_file = class_to_test + "_posts.csv"
 
-(vocabs, dicts, vectors, originals) = read_vectorized_data(input_file)
+limit = 1400 #None
+(vocabs, dicts, vectors, originals) = read_vectorized_data(input_file, "tfidf", limit=limit)
 
-
-tags_vector = vectors["tags"]
+title_vector = vectors["title"]
 body_vector = vectors["body"]
+tags_vector = vectors["tags"]
 
 body_original = originals["body"]
 
-limit = 1800
-tags_vector = tags_vector[:limit]
-body_vector = body_vector[:limit]
-
 body_dict = dicts["body"]
 
-
+print title_vector.shape
 print body_vector.shape
+print tags_vector.shape
+
 
 bv = body_vector[0]
 print bv.shape
 # print body_vector[0, 1080:1090]
 # print body_vector[0, body_vocab["exams"]]
 
-print bv
 nonzeros = np.where(bv > 0) 
 nonzeros = nonzeros[0]
 print nonzeros
@@ -47,9 +45,9 @@ for i in range(n_samples):
         dists[i,j] = np.sqrt(np.sum((a-b)**2))
 
 print dists.shape
-# print dists
+print dists
 
-close = np.logical_and(dists >= 0, dists < 0.5)
+close = np.logical_and(dists >= 0, dists < 1.1)
 
 # Ignore everything below and including the diagonal
 # since the matrix is symmetric
@@ -65,8 +63,8 @@ close_inds = close_inds.T
 
 
 for (c1, c2) in close_inds:
-    break
     print "\n\n"
+    break
 
     close1 = body_original[c1]
     close2 = body_original[c2]
@@ -80,7 +78,6 @@ for (c1, c2) in close_inds:
 # print body_original[2], "\n-", body_original[4]
 
 
-
 ## Cosine similarity
 print "\n\n"
 print "Performing cosine similarity analysis"
@@ -90,9 +87,9 @@ body_vector_normed = body_vector / norms
 similarities = np.dot(body_vector_normed, body_vector_normed.T)
 similarities = np.round(similarities, 2)
 cos_dists = 1 - similarities
-# print cos_dists
+print cos_dists
 
-cos_close = np.logical_and(cos_dists >= 0, cos_dists < 0.15)
+cos_close = np.logical_and(cos_dists >= 0, cos_dists < 0.45)
 
 # Ignore everything below and including the diagonal
 # since the matrix is symmetric
